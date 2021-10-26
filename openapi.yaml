@@ -1,0 +1,416 @@
+openapi: "3.0.0"
+info:
+  title: Online classes
+  description: The service for conducting online classes.
+  contact:
+    name: Repository
+    url: https://github.com/Avariq/NULPAP.git
+  version: 1.0.0
+
+servers: 
+  - url: http://courses.com
+
+paths:
+  /registration/student:
+    post:
+      tags: 
+        - Student
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Student"
+      responses:
+        201:
+          description: New student added successfully
+          content:
+            application/json:
+              schema:
+                 $ref: "#/components/schemas/Student"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+  
+  /registration/teacher:
+    post:
+      tags: 
+        - Teacher
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Teacher'
+      responses:
+        200:
+          description: New Teacher added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+  
+  /log_in:
+    post:
+      tags: 
+        - Student
+        - Teacher
+      summary: Logs user into the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        201:
+          description: Successful authorization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  token:
+                    type: string
+                    format: uuid
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+  
+  /student/{password}:
+    parameters:
+      - in: path
+        name: password
+        required: true
+        description: user password
+        schema:
+          type: string
+          format: password
+    put:
+      tags: 
+        - Student
+      summary: Change Student info
+      security:
+        - auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Student"
+      responses:
+        200:
+          description: New student info updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+  
+  /teacher/{password}:
+    parameters:
+      - in: path
+        name: password
+        required: true
+        description: teacher password
+        schema:
+          type: string
+          format: password
+    put:
+      tags: 
+        - Teacher
+      summary: Change Teacher info
+      security:
+        - auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Teacher"
+      responses:
+        200:
+          description: New Teacher info updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+    post:
+      tags:
+       - Teacher
+       - Courses
+      summary: Add new Course
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        200:
+          description: New Course added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+    get:
+      tags: 
+        - Teacher
+        - Courses
+      summary: Get info about courses
+      security: 
+        - auth: []
+      responses:
+        200:
+          description: Avaiable courses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher/properties/courses"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+    delete:
+      tags: 
+        - Courses
+        - Teacher
+      summary: Delete course
+      security:
+        - auth: []
+      responses:
+        200:
+          description: Course deleted successfuly
+        401:
+          description: Data sended to server was invalid
+        404:
+          description: Course not found
+        500:
+          description: Internal error
+  
+  /course/{password}:
+    parameters:
+      - in: path
+        name: password
+        required: true
+        description: password of the course
+        schema:
+          type: string
+    put:
+      tags:
+        - Courses
+        - Teacher
+      summary: Add student to the course
+      security:
+        - auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Course"
+      responses:
+        200:
+          description: Student added successfuly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        400: 
+          description: Data sended to server was invalid
+        404:
+          description: Student not found
+        500:
+          description: Internal error
+  
+  /course/students/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        description: user id
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: 
+        - Student
+      summary: Get info about course
+      security: 
+        - auth: []
+      responses:
+        200:
+          description: Course found successfuly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course/properties/student_course"
+        400:
+          description: Data sended to server was invalid
+        500:
+          description: Internal error
+  
+  /course/{name}:
+    parameters:
+      - in: path
+        name: name
+        required: true
+        description: name of the course
+        schema:
+          type: string
+    post:
+      tags: 
+        - Student
+        - Courses
+      summary: Request to join the course
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Student"
+      responses:
+        201:
+          description: Request sent successfuly. Wait for the accession
+        400:
+          description: Data sended to server was invalid
+        404:
+          description: Course not found
+        500:
+          description: Internal error
+  
+  /User/{password}:
+    parameters:
+      - in: path
+        name: password
+        required: true
+        description: user password
+        schema:
+          type: string
+          format: password
+    delete:
+      tags: 
+        - Student
+        - Teacher
+      summary: Delete user
+      security:
+        - auth: []
+      responses:
+        200:
+          description: User deleted successfuly
+        401:
+          description: Data sended to server was invalid
+        404:
+          description: User not found
+        500:
+          description: Internal error
+
+
+
+
+
+components:
+  securitySchemes:
+    auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        first_name:
+          type: string
+        last_name:
+          type: string
+    Student:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        id:
+          type: string
+          format: uuid
+    Teacher:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Requests'
+    Student_course:
+      type: object
+      properties:
+        name:
+          type: string
+          format: name
+          example: Applied Programming
+        description:
+          type: string
+        hours_to_complete:
+          type: integer
+          format: int32
+        lessons:
+          type: string
+    Student_id:
+      type: string
+      format: uuid
+    Course:
+      type: object
+      properties:
+        student_course:
+          type: array
+          items:
+            $ref: '#/components/schemas/Student_course'
+        password:
+          type: string
+          format: password
+        student_counter:
+          type: integer
+          maximum: 5
+        students:
+          type: array
+          maximum: 5
+          items:
+            $ref: '#/components/schemas/Student_id'
+    Requests:
+      type: array
+      items:
+        type: object
+        properties:
+          student_id:
+            type: string
+            format: uuid
+          course:
+            type: string
