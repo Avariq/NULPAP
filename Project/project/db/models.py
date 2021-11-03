@@ -29,9 +29,6 @@ class User(Base):
     password = Column(String(45), nullable=False)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
-    course_id = Column(Integer(), nullable=False)
-
-    courses = relationship("Course", secondary=course_membership, backref="users")
 
 class Course(Base):
     __tablename__ = "course"
@@ -45,7 +42,8 @@ class Course(Base):
     hours_to_complete = Column(Integer(), nullable=False)
     educational_material = Column(String(255), nullable=False)
     student_counter = Column(Integer(), nullable=False)
-    user_id = Column(Integer(), nullable=False)
+
+    users = relationship("User", secondary=course_membership, backref="courses")
 
 class Request(Base):
     __tablename__ = "request"

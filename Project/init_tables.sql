@@ -6,8 +6,7 @@ CREATE TABLE user (
     email VARCHAR(255) NOT NULL,
 	password VARCHAR(45) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
-    lastName VARCHAR(255) NOT NULL,
-    course_id INT NOT NULL
+    last_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE course (
@@ -16,11 +15,11 @@ CREATE TABLE course (
     description VARCHAR(255) NOT NULL,
 	hours_to_complete INT NOT NULL,
     educational_material VARCHAR(255) NOT NULL,
-	student_counter	INT CHECK(student_counter BETWEEN 0 and 5),
-    user_id INT NOT NULL
+	student_counter	INT CHECK(student_counter BETWEEN 0 and 5)
 );
 
 CREATE TABLE course_membership (
+	id INT AUTO_INCREMENT PRIMARY KEY,
 	user_id INT NOT NULL,
     course_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id),
