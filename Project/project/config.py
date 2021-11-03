@@ -1,0 +1,1 @@
+DB_URI = "mysql+pymysql://Admin:16w44z88@localhost/onlinecourses"
