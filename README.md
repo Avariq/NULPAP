@@ -11,3 +11,7 @@ Usage Guide
 5. Use IDE's Terminal, move to 'project' folder (cd .\project\ in PyCharm) and invoke waitress-serve --host (your localhost ip) --port=88 --call "main:create_app" command
 6. Now follow http://localhost:88/api/v1/hello-world-11 and you should see "Hello world 11" text.
 7. Terminate your terminal when done.
+
+Database schema:
+
+![alt text](https://ibb.co/jWTpcmL)
