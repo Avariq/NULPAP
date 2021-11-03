@@ -14,4 +14,4 @@ Usage Guide
 
 Database schema:
 
-![alt text](https://ibb.co/jWTpcmL)
+![alt text](https://i.ibb.co/1dLSD19/Screenshot-2021-11-03-180609.png)
