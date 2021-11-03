@@ -2,7 +2,7 @@ USE onlinecourses;
 
 CREATE TABLE user (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('student', 'teacher'),
+    role ENUM('student', 'teacher') NOT NULL,
     email VARCHAR(255) NOT NULL,
 	password VARCHAR(45) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
