@@ -8,6 +8,9 @@ authors = ["IhorT <thekalgorsplay@gmail.com>"]
 python = "^3.6"
 Flask = "^2.0.1"
 waitress = "^2.0.0"
+SQLAlchemy = "^1.4.26"
+PyMySQL = "^1.0.2"
+alembic = "^1.7.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

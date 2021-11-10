@@ -1,0 +1,1 @@
+DROP TABLE `onlinecourses`.`request`, `onlinecourses`.`course_membership`, `onlinecourses`.`course`, `onlinecourses`.`user`;
