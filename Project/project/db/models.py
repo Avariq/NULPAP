@@ -15,7 +15,7 @@ from sqlalchemy.sql.schema import CheckConstraint
 
 Base = declarative_base()
 
-course_membership = Table('course_membership', Base.metadata, 
+course_membership = Table('course_membership', Base.metadata,
     Column('user_id', Integer(), ForeignKey("user.id")),
     Column('course_id', Integer(), ForeignKey("course.id"))
 )
@@ -23,10 +23,10 @@ course_membership = Table('course_membership', Base.metadata,
 class User(Base):
     __tablename__ = "user"
 
-    id  = Column(Integer(), autoincrement=True, primary_key=True)
+    id = Column(Integer(), autoincrement=True, primary_key=True)
     role = Column(Enum("student", "teacher"), nullable=False)
     email = Column(String(255), nullable=False)
-    password = Column(String(45), nullable=False)
+    password = Column(String(64), nullable=False)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
 
@@ -36,7 +36,7 @@ class Course(Base):
         CheckConstraint('student_counter <= 5'),
     )
 
-    id  = Column(Integer(), autoincrement=True, primary_key=True)
+    id = Column(Integer(), autoincrement=True, primary_key=True)
     name = Column(String(255), nullable=False)
     description = Column(String(255), nullable=False)
     hours_to_complete = Column(Integer(), nullable=False)
@@ -48,7 +48,7 @@ class Course(Base):
 class Request(Base):
     __tablename__ = "request"
 
-    id  = Column(Integer(), autoincrement=True, primary_key=True)
+    id = Column(Integer(), autoincrement=True, primary_key=True)
     student_id = Column(Integer(), ForeignKey("user.id"))
     teacher_id = Column(Integer(), ForeignKey("user.id"))
     course_id = Column(Integer(), ForeignKey("course.id"))
