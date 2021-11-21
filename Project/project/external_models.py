@@ -59,11 +59,12 @@ class UserToCreate:
 
 class CourseToCreate:
 
-    def __init__(self):
+    def __init__(self, ):
         self.name = ''
         self.description = ''
         self.hours_to_complete = 0
         self.educational_material = ''
+        self.student_counter = 0
 
     def load(self, json_data):
         course_data = json.loads(json_data)
@@ -94,9 +95,62 @@ class CourseToCreate:
         return True
 
 
+class CourseData:
+    def __init__(self, course, users=[]):
+        self.id = course.id
+        self.name = course.name
+        self.description = course.description
+        self.hours_to_complete = course.hours_to_complete
+        self.educational_material = course.educational_material
+        self.student_counter = course.student_counter
+        self.users = list()
+
+        for user in users:
+            self.users.append({
+                'id': user.id, 'role': user.role, 'email': user.email,
+                'password': user.password,
+                'first_name': user.first_name, 'last_name': user.last_name
+            })
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 
+class RequestToCreate:
 
+    def __init__(self):
+        self.student_id = 0
+        self.teacher_id = 0
+        self.course_id = 0
 
+    def load(self, json_data):
+        request_data = json.loads(json_data)
+        if self.check(request_data):
+            try:
+                self.student_id = request_data['student_id']
+                self.course_id = request_data['course_id']
+
+                return self.__dict__
+            except KeyError:
+                return None
+        return False
+
+    @staticmethod
+    def check(request_data):
+        if type(request_data['student_id']) != int or request_data['student_id'] < 1:
+            return False
+        if type(request_data['course_id']) != int or request_data['course_id'] < 1:
+            return False
+        return True
+
+class RequestData:
+    def __init__(self, request):
+        self.id = request.id
+        self.student_id = request.student_id
+        self.teacher_id = request.teacher_id
+        self.course_id = request.course_id
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 
