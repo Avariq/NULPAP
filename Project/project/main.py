@@ -39,6 +39,7 @@ def create_app():
 
     @app.route("/user", methods=['POST'])
     def create_user():
+        # "{\"role\": \"student\", \"email\": \"Unique@mail.com\", \"password\": \"whom\", \"first_name\": \"Renner\", \"last_name\": \"Finn\"}"
         user_data = UserToCreate().load(request.json)
         if user_data:
             user_data['password'] = Hasher256.Hash(user_data['password'])
@@ -48,6 +49,7 @@ def create_app():
 
     @app.route("/user", methods=['GET'])
     def login():
+        #http://127.0.0.1:88/user?email=Unique@mail.com&password=whom
         email = request.args.get('email')
         password = Hasher256.Hash(request.args.get('password'))
         user = dbcontext.get_user_by_email(email)
@@ -59,10 +61,12 @@ def create_app():
 
     @app.route("/user/<int:user_id>", methods=['PUT'])
     def update_user(user_id):
+        # "{\"role\": \"student\", \"email\": \"Unique@mail.com\", \"password\": \"whoom\", \"first_name\": \"Renner\", \"last_name\": \"Finn\"}"
         user = dbcontext.get_entry_by_uid(User, user_id)
         if user:
             user_data = UserToCreate().load(request.json)
             if user_data:
+                user_data['password'] = Hasher256.Hash(user_data['password'])
                 updated_user = dbcontext.update_user(user_data, user_id)
                 return jsonify(UserData(updated_user, updated_user.courses).toJSON()), 200
             return Response("Invalid data provided.", status=400)
@@ -79,6 +83,7 @@ def create_app():
 
     @app.route("/course", methods=['POST'])
     def create_course():
+        # "{\"name\": \"Some new course!.\", \"description\": \"Some new course! course description\", \"hours_to_complete\": 14, \"educational_material\": \"material\"}"
         course_data = CourseToCreate().load(request.json)
 
         if course_data:
@@ -96,6 +101,8 @@ def create_app():
 
     @app.route("/courses/all", methods=['GET'])
     def get_courses():
+        # http://127.0.0.1:88/courses/all?role=student&id=1
+        # http://127.0.0.1:88/courses/all?role=teacher
         role = request.args.get('role')
         result = []
         if role:
@@ -115,6 +122,7 @@ def create_app():
 
     @app.route("/course/<int:course_id>", methods=['PUT'])
     def update_course(course_id):
+        # "{\"name\": \"Some new course!.\", \"description\": \"Some new course! course edited description\", \"hours_to_complete\": 14, \"educational_material\": \"material\"}"
         course = dbcontext.get_entry_by_uid(Course, course_id)
         if course:
             course_data = CourseToCreate().load(request.json)
@@ -148,6 +156,7 @@ def create_app():
 
     @app.route("/request", methods=['POST'])
     def create_request():
+        # "{\"student_id\": 4, \"course_id\": 2}"
         request_data = RequestToCreate().load(request.json)
         if request_data:
             course_id = request_data['course_id']
@@ -189,14 +198,6 @@ def create_app():
                     return Response("Unexpected error occurred.", status=500)
                 return Response("Access denied.", status=403)
         return Response("Request not found.", status=404)
-
-
-
-
-
-
-
-
 
 
     return app
