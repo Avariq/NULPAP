@@ -158,10 +158,37 @@ def create_app():
                 return jsonify(RequestData(req).toJSON()), 201
         return Response("Invalid data provided.", status=400)
 
-    @app.route('/request/<int:user_id>/<str:role>')
+    @app.route('/request/<int:user_id>/<string:role>', methods=['GET'])
     def get_all_requests(user_id, role):
         if role == 'student':
-            
+            requests = dbcontext.get_student_requests(user_id)
+        elif role == 'teacher':
+            requests = dbcontext.get_teacher_pending_requests(user_id)
+        else:
+            return Response("Invalid data provided.", status=400)
+
+        result = []
+        for req in requests:
+            result.append(RequestData(req).toJSON())
+        return jsonify(result), 200
+
+    @app.route("/request/<int:request_id>/<int:user_id>/<string:role>", methods=['DELETE'])
+    def delete_request(request_id, user_id, role):
+        req = dbcontext.get_entry_by_uid(Request, request_id)
+        if req:
+            if role == 'student':
+                if req.student_id == user_id:
+                    if dbcontext.delete_entry_by_uid(Request, request_id):
+                        return Response("Request has been successfully deleted.", status=200)
+                    return Response("Unexpected error occurred.", status=500)
+                return Response("Access denied.", status=403)
+            elif role == 'teacher':
+                if req.teacher_id == user_id:
+                    if dbcontext.delete_entry_by_uid(Request, request_id):
+                        return Response("Request has been successfully deleted.", status=200)
+                    return Response("Unexpected error occurred.", status=500)
+                return Response("Access denied.", status=403)
+        return Response("Request not found.", status=404)
 
 
 
