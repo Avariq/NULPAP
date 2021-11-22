@@ -52,7 +52,10 @@ class UserToCreate:
             return False
         if not re.fullmatch(regex, user_data['email']):
             return False
-        if len(user_data['password']) > 64:
+        if len(user_data['password']) > 16:
+            return False
+        if type(user_data['role']) != str or type(user_data['password']) != str\
+                or type(user_data['first_name']) != str or type(user_data['last_name']) != str:
             return False
 
         return True
