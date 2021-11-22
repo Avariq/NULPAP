@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from random import randint
@@ -9,7 +9,7 @@ from project.config import DB_URI
 engine = create_engine(DB_URI)
 engine.connect()
 
-session = Session(bind=engine)
+session = Session(engine)
 
 users = []
 courses = []
@@ -46,7 +46,7 @@ def generate_users():
             )
         )
 
-        id +=1
+        id += 1
 
     for teacher in teachers:
         users.append(
@@ -60,7 +60,7 @@ def generate_users():
             )
         )
 
-        id +=1
+        id += 1
 
 def generate_courses():
     course_id = 1
@@ -68,7 +68,7 @@ def generate_courses():
 
     for name in names:
         counter = randint(1, 5)
-        course =  Course(
+        course = Course(
                 id=course_id,
                 name=name,
                 description=f"{name} course description",
@@ -86,7 +86,7 @@ def generate_requests():
             Request(
                 id=i+1,
                 student_id=users[i].id,
-                teacher_id=users[randint(5,9)].id,
+                teacher_id=users[randint(5, 9)].id,
                 course_id=courses[randint(0, 3)].id
             )
         )
