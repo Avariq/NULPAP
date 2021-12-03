@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from project.db.models import User, Course, Request
-from project.config import DB_URI
+from db.models import User, Course, Request
+from config import DB_URI
 
 engine = create_engine(DB_URI)
 engine.connect()

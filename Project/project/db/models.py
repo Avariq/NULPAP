@@ -26,7 +26,7 @@ class User(Base):
     id = Column(Integer(), autoincrement=True, primary_key=True)
     role = Column(Enum("student", "teacher"), nullable=False)
     email = Column(String(255), nullable=False)
-    password = Column(String(64), nullable=False)
+    password = Column(String(100), nullable=False)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
 
