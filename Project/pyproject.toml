@@ -13,6 +13,9 @@ PyMySQL = "^1.0.2"
 alembic = "^1.7.4"
 psycopg2 = "^2.9.2"
 cryptography = "^35.0.0"
+Flask-SQLAlchemy = "^2.5.1"
+Flask-HTTPAuth = "^4.5.0"
+unittest = "^0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
