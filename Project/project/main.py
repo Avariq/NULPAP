@@ -245,23 +245,22 @@ def create_app():
     def delete_request(request_id, user_id):
         current_user = get_current_user()
         req = dbcontext.get_entry_by_uid(Request, request_id)
+        if not req: return Response("Request not found.", status=404)
+        
         course_id = req.course_id
         student_id = req.student_id
-        if req:
-            if current_user.role == 'student':
-                if req.student_id == user_id and current_user.id == user_id:
-                    if dbcontext.delete_entry_by_uid(Request, request_id):
-                        return Response("Request has been successfully deleted.", status=200)
-                    return Response("Unexpected error occurred.", status=500)
-                return Response("Access denied.", status=403)
-            elif current_user.role == 'teacher':
-                if req.teacher_id == user_id:
-                    if dbcontext.delete_entry_by_uid(Request, request_id):
-                        dbcontext.add_user_to_course(course_id, student_id)
-                        return Response("Request has been successfully deleted.", status=200)
-                    return Response("Unexpected error occurred.", status=500)
-                return Response("Access denied.", status=403)
-        return Response("Request not found.", status=404)
+
+        if current_user.role == 'student':
+            if req.student_id == user_id and current_user.id == user_id:
+                if dbcontext.delete_entry_by_uid(Request, request_id):
+                    return Response("Request has been successfully deleted.", status=200)
+            return Response("Access denied.", status=403)
+        elif current_user.role == 'teacher':
+            if req.teacher_id == user_id:
+                if dbcontext.delete_entry_by_uid(Request, request_id):
+                    dbcontext.add_user_to_course(course_id, student_id)
+                    return Response("Request has been successfully deleted.", status=200)
+            return Response("Access denied.", status=403)
 
 
     return app

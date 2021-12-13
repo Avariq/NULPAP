@@ -466,3 +466,44 @@ class TestGetRequests(BaseCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data, b'Unauthorized Access')
+
+class TestRequestDelete(BaseCase):
+    def setUp(self):
+        super().setUp()
+        
+        self.teacher_headers = self.create_auth_headers("mail1@mail.com", "whom")
+        self.student_headers = self.create_auth_headers("mail@mail.com", "whom")
+
+        dbcontex.add_user_to_course(1, 2)
+        dbcontex.create_entry(Request, **json.loads('{"student_id": 1, "course_id": 1}'))
+
+
+    def test_success(self):
+        response = self.client.delete(self.url(f"/request/{1}/{1}"), headers=self.student_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, b'Request has been successfully deleted.')
+
+    def test_denied_teacher(self):
+        response = self.client.delete(self.url(f"/request/{1}/{2}"), headers=self.teacher_headers)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, b'Access denied.')
+
+    def test_no_auth(self):
+        response = self.client.delete(self.url(f"/request/{1}/{1}"))
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data, b'Unauthorized Access')
+
+    def test_not_found(self):
+        response = self.client.delete(self.url(f"/request/{2}/{1}"), headers=self.student_headers)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, b'Request not found.')
+
+    def test_access_denied(self):
+        response = self.client.delete(self.url(f"/request/{1}/{2}"), headers=self.student_headers)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, b'Access denied.')
