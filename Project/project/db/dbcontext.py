@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db.models import User, Course, Request
-from config import DB_URI
+from project.db.models import User, Course, Request
+from project.config import DB_URI
 
 engine = create_engine(DB_URI)
 engine.connect()
@@ -68,10 +68,18 @@ def get_accessible_courses(uid=None):
 
     if uid:
         student = session.query(User).filter(User.id == uid).one_or_none()
-        if student:
-            return student.courses
+        courses = None
+        if student: courses = student.courses
+        for course in courses:
+            course.users = course.users
+        session.close()
+        if courses is not None: return courses
 
     courses = session.query(Course).all()
+    for course in courses:
+        course.users = course.users
+    session.close()
+
     return courses
 
 def update_course(course_data, course_id, student_count):

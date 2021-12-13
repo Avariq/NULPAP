@@ -33,16 +33,13 @@ class UserToCreate:
     def load(self, json_data):
         user_data = json.loads(json_data)
         if self.check(user_data):
-            try:
-                self.role = user_data['role']
-                self.email = user_data['email']
-                self.password = user_data['password']
-                self.first_name = user_data['first_name']
-                self.last_name = user_data['last_name']
+            self.role = user_data['role']
+            self.email = user_data['email']
+            self.password = user_data['password']
+            self.first_name = user_data['first_name']
+            self.last_name = user_data['last_name']
 
-                return self.__dict__
-            except KeyError:
-                return None
+            return self.__dict__
         return False
 
     @staticmethod
@@ -72,15 +69,12 @@ class CourseToCreate:
     def load(self, json_data):
         course_data = json.loads(json_data)
         if self.check(course_data):
-            try:
-                self.name = course_data['name']
-                self.description = course_data['description']
-                self.hours_to_complete = course_data['hours_to_complete']
-                self.educational_material = course_data['educational_material']
+            self.name = course_data['name']
+            self.description = course_data['description']
+            self.hours_to_complete = course_data['hours_to_complete']
+            self.educational_material = course_data['educational_material']
 
-                return self.__dict__
-            except KeyError:
-                return None
+            return self.__dict__
         return False
 
     @staticmethod
@@ -129,13 +123,10 @@ class RequestToCreate:
     def load(self, json_data):
         request_data = json.loads(json_data)
         if self.check(request_data):
-            try:
-                self.student_id = request_data['student_id']
-                self.course_id = request_data['course_id']
+            self.student_id = request_data['student_id']
+            self.course_id = request_data['course_id']
 
-                return self.__dict__
-            except KeyError:
-                return None
+            return self.__dict__
         return False
 
     @staticmethod

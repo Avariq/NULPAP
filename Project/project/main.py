@@ -1,30 +1,14 @@
 from flask import Flask, jsonify, request, Response
+from sqlalchemy.orm import session
 from flask_sqlalchemy import SQLAlchemy
 from json import dump, dumps
-import db.dbcontext as dbcontext
-from db.models import User, Course, Request
-from external_models import UserData, UserToCreate, CourseToCreate, CourseData, RequestToCreate, RequestData
-from hasher import HashPassword
-
+import project.db.dbcontext as dbcontext
+from project.db.models import User, Course, Request
+from project.external_models import UserData, UserToCreate, CourseToCreate, CourseData, RequestToCreate, RequestData
+from project.hasher import HashPassword
+from project.config import DB_URI
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-
-DB_URI = "mysql+pymysql://root:12021969@localhost:3306/onlinecourses"
-
-def get_decorator(errors=(Exception, ), default_value=''):
-
-    def decorator(func):
-
-        def new_func(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except errors as e:
-                print("Got error! ", repr(e))
-                return default_value
-
-        return new_func
-
-    return decorator
 
 def create_app():
     app = Flask(__name__)
@@ -50,19 +34,20 @@ def create_app():
 
     @app.route("/api/v1/hello-world-11", methods=['GET'])
     def hello():
-        return '<h1 style="color:maroon;">Hello world 11</h1>'
+        return '<h1 style="color:maroon;">Hello world 11</h1>', 200
 
     @app.route("/user", methods=['POST'])
     def create_user():
         # "{\"role\": \"student\", \"email\": \"Unique@mail.com\", \"password\": \"whom\", \"first_name\": \"Renner\", \"last_name\": \"Finn\"}"
         user_data = UserToCreate().load(request.json)
+        if not user_data:
+             return jsonify(message="Invalid data provided."), 400
+
         if_exists = dbcontext.get_user_by_email(user_data["email"])
         if not if_exists:
-            if user_data:
-                user_data['password'] = Hasher256.Hash(user_data['password'])
-                user = dbcontext.create_entry(User, **user_data)
-                return jsonify(UserData(user).toJSON()), 201
-            return jsonify(message="Invalid data provided."), 400
+            user_data['password'] = Hasher256.Hash(user_data['password'])
+            user = dbcontext.create_entry(User, **user_data)
+            return jsonify(UserData(user).toJSON()), 201
         return jsonify(message="User with such email already exists"), 400
 
     @app.route("/user", methods=['GET'])
@@ -82,14 +67,11 @@ def create_app():
     def get_user_by_id(user_id):
         user = dbcontext.get_entry_by_uid(User, user_id)
         current_user = get_current_user()
-        try:
-            if user:
-                if current_user.email == user.email:
-                    return jsonify(UserData(user, user.courses).toJSON()), 200
-                return Response("Access denied.", status=403)
-            return Response("User not found.", status=404)
-        except:
-            return Response("Authorizetion eror.", status=403)
+        if user:
+            if current_user.email == user.email:
+                return jsonify(UserData(user, user.courses).toJSON()), 200
+            return Response("Access denied.", status=403)
+        return Response("User not found.", status=404)
 
     @app.route("/user/<int:user_id>", methods=['PUT'])
     @auth.login_required
@@ -97,37 +79,29 @@ def create_app():
         # "{\"role\": \"student\", \"email\": \"Unique@mail.com\", \"password\": \"whoom\", \"first_name\": \"Renner\", \"last_name\": \"Finn\"}"
         user = dbcontext.get_entry_by_uid(User, user_id)
         current_user = get_current_user()
-        try:
-            if user:
-                if current_user.email == user.email:
-                    user_data = UserToCreate().load(request.json)
-                    if user_data:
-                        user_data['password'] = Hasher256.Hash(user_data['password'])
-                        updated_user = dbcontext.update_user(user_data, user_id)
-                        return jsonify(UserData(updated_user, updated_user.courses).toJSON()), 200
-                    return Response("Invalid data provided.", status=400)
-                return Response("Access denied.", status=403)
-            return Response("User not found.", status=404)
-        except:
-            return Response("Authorizetion eror.", status=403)
+        if user:
+            if current_user.email == user.email:
+                user_data = UserToCreate().load(request.json)
+                if user_data:
+                    user_data['password'] = Hasher256.Hash(user_data['password'])
+                    updated_user = dbcontext.update_user(user_data, user_id)
+                    return jsonify(UserData(updated_user, updated_user.courses).toJSON()), 200
+                return Response("Invalid data provided.", status=400)
+            return Response("Access denied.", status=403)
+        return Response("User not found.", status=404)
 
     @app.route("/user/<int:user_id>", methods=['DELETE'])
     @auth.login_required
     def delete_user(user_id):
         user = dbcontext.get_entry_by_uid(User, user_id)
         current_user = get_current_user()
-        try:
-            if user:
-                if current_user.email == user.email:
-                    if current_user.email == user.email:
-                        if dbcontext.delete_entry_by_uid(User, user_id):
-                            return Response("User has been successfully deleted.", status=200)
-                        return Response("Unexpected error occurred.", status=500)
-                    return Response("Access denied.", status=403)
-                return Response("Access denied.", status=403)
-            return Response("User not found.", status=404)
-        except:
-            return Response("Authorizetion eror.", status=403)
+        if user:
+            if current_user.email == user.email:
+                if dbcontext.delete_entry_by_uid(User, user_id):
+                    return Response("User has been successfully deleted.", status=200)
+                return Response("Unexpected error occurred.", status=500)
+            return Response("Access denied.", status=403)
+        return Response("User not found.", status=404)
 
     @app.route("/course", methods=['POST'])
     @auth.login_required
@@ -157,15 +131,11 @@ def create_app():
             elif current_user.role == "student":
                 student_id = current_user.id
                 courses = dbcontext.get_accessible_courses(student_id)
-                flag = 1
                 for i in courses:
-                    course = CourseData(i, course.users)
+                    course = CourseData(i, i.users)
                     if course.id == c_id:
-                        flag = 0
                         return jsonify(CourseData(current_course, current_course.users).toJSON()), 200
-                if flag:
-                    return Response("You have none courses.", status=200)
-            return Response("Authorizetion eror.", status=403)
+                return Response("You have none courses.", status=200)
         return Response("Course not found.", status=404)
 
     @app.route("/courses/all", methods=['GET'])
@@ -174,19 +144,16 @@ def create_app():
         # http://127.0.0.1:88/courses/all
         current_user = get_current_user()
         result = []
-        try:
-            if current_user.role == "teacher":
-                courses = dbcontext.get_accessible_courses()
-                for course in courses:
-                    result.append(CourseData(course, course.users).toJSON())
-            else:
-                student_id = current_user.id
-                courses = dbcontext.get_accessible_courses(student_id)
-                for course in courses:
-                    result.append(CourseData(course, course.users).toJSON())
-            return jsonify(result, 200)
-        except:
-            return Response("Authorizetion eror.", status=403)
+        if current_user.role == "teacher":
+            courses = dbcontext.get_accessible_courses()
+            for course in courses:
+                result.append(CourseData(course, course.users).toJSON())
+        else:
+            student_id = current_user.id
+            courses = dbcontext.get_accessible_courses(student_id)
+            for course in courses:
+                result.append(CourseData(course, course.users).toJSON())
+        return jsonify(result, 200)
 
     @app.route("/course/<int:course_id>", methods=['PUT'])
     @auth.login_required
@@ -214,7 +181,6 @@ def create_app():
             if current_user.role == "teacher":
                 if dbcontext.delete_entry_by_uid(Course, course_id):
                     return Response("Course has been successfully deleted.", status=200)
-                return Response("Unexpected error occurred.", status=500)
             return Response("Access denied.", status=403)
         return Response("Course not found.", status=404)
 
@@ -240,6 +206,8 @@ def create_app():
     def create_request():
         # "{\"student_id\": 4, \"course_id\": 2}"
         current_user = get_current_user()
+        if request.json is None: return Response("Invalid data provided.", status=400)
+
         request_data = RequestToCreate().load(request.json)
         if request_data['student_id'] != current_user.id:
             return Response("Access denied.", status=403)
@@ -247,14 +215,12 @@ def create_app():
         if current_user.role == "student":
             if user:
                 if user.role == "student":
-                    if request_data:
-                        course_id = request_data['course_id']
-                        teacher_id = dbcontext.get_teacher_id_by_course_id(course_id)
-                        if teacher_id:
-                            request_data['teacher_id'] = teacher_id
-                            req = dbcontext.create_entry(Request, **request_data)
-                            return jsonify(RequestData(req).toJSON()), 201
-                    return Response("Invalid data provided.", status=400)
+                    course_id = request_data['course_id']
+                    teacher_id = dbcontext.get_teacher_id_by_course_id(course_id)
+                    if teacher_id:
+                        request_data['teacher_id'] = teacher_id
+                        req = dbcontext.create_entry(Request, **request_data)
+                        return jsonify(RequestData(req).toJSON()), 201
                 return Response("Access denied.", status=403)
             return jsonify(message="Student not found"), 404
         return Response("Access denied.", status=403)
@@ -269,8 +235,6 @@ def create_app():
             requests = dbcontext.get_student_requests(current_user.id)
         elif current_user.role == 'teacher':
             requests = dbcontext.get_teacher_pending_requests(user_id)
-        else:
-            return Response("Invalid data provided.", status=400)
         result = []
         for req in requests:
             result.append(RequestData(req).toJSON())
@@ -281,28 +245,27 @@ def create_app():
     def delete_request(request_id, user_id):
         current_user = get_current_user()
         req = dbcontext.get_entry_by_uid(Request, request_id)
+        if not req: return Response("Request not found.", status=404)
+        
         course_id = req.course_id
         student_id = req.student_id
-        if req:
-            if current_user.role == 'student':
-                if req.student_id == user_id and current_user.id == user_id:
-                    if dbcontext.delete_entry_by_uid(Request, request_id):
-                        return Response("Request has been successfully deleted.", status=200)
-                    return Response("Unexpected error occurred.", status=500)
-                return Response("Access denied.", status=403)
-            elif current_user.role == 'teacher':
-                if req.teacher_id == user_id:
-                    if dbcontext.delete_entry_by_uid(Request, request_id):
-                        dbcontext.add_user_to_course(course_id, student_id)
-                        return Response("Request has been successfully deleted.", status=200)
-                    return Response("Unexpected error occurred.", status=500)
-                return Response("Access denied.", status=403)
-        return Response("Request not found.", status=404)
+
+        if current_user.role == 'student':
+            if req.student_id == user_id and current_user.id == user_id:
+                if dbcontext.delete_entry_by_uid(Request, request_id):
+                    return Response("Request has been successfully deleted.", status=200)
+            return Response("Access denied.", status=403)
+        elif current_user.role == 'teacher':
+            if req.teacher_id == user_id:
+                if dbcontext.delete_entry_by_uid(Request, request_id):
+                    dbcontext.add_user_to_course(course_id, student_id)
+                    return Response("Request has been successfully deleted.", status=200)
+            return Response("Access denied.", status=403)
 
 
     return app
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     app = create_app()
     app.run()
